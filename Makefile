@@ -16,3 +16,7 @@ clean:
 	@echo "Cleaning up"
 	rm -rfv dist
 	rm -rf nerdlight-firmwarebuilder
+release:
+	@echo "Releasing tag $VERSION"
+	git tag -a $VERSION -m "Release $VERSION"
+	git push origin $VERSION

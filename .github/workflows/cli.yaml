@@ -2,9 +2,8 @@ name: CLI
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - "v*"
 
 jobs:
   build:
@@ -36,4 +35,3 @@ jobs:
         env:
           GHR_PATH: dist/
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      
