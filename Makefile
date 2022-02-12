@@ -20,3 +20,7 @@ release:
 	@echo "Releasing tag v${VERSION}"
 	git tag -a v${VERSION} -m "Release v${VERSION}"
 	git push origin v${VERSION}
+derelease:
+	@echo "Dereleasing tag v${VERSION}"
+	git tag -d v${VERSION}
+	git push --delete origin v${VERSION}

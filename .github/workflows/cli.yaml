@@ -32,6 +32,8 @@ jobs:
       - uses: actions/download-artifact@v2.1.0
         with:
             path: /tmp
+      - name: Inspect
+        run: ls -la /tmp/*
       - name: Create GitHub Release
         uses: fnkr/github-action-ghr@v1
         env:
