@@ -1,5 +1,5 @@
 # nerdlight-firmwarebuilder ⚒⚡️
-
+[![CLI](https://github.com/ziomarco/nerdlight-firmwarebuilder/actions/workflows/cli.yaml/badge.svg)](https://github.com/ziomarco/nerdlight-firmwarebuilder/actions/workflows/cli.yaml)
 Nerdlight NodeMCU Firmware Builder CLI ⚒
 
 # Description

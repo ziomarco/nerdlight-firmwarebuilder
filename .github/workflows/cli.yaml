@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - uses: actions/setup-go@v2
         with:
           go-version: 1.17
@@ -31,6 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2.1.0
-      - uses: elgohr/Github-Release-Action@v3.1
-        with:
-          release: ${SHORT_SHA}
+      - name: Release
+        uses: fnkr/github-action-ghr@v1
+        env:
+          GHR_PATH: dist/
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      
