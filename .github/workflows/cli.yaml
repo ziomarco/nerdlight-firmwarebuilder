@@ -37,5 +37,5 @@ jobs:
       - name: Create GitHub Release
         uses: fnkr/github-action-ghr@v1
         env:
-          GHR_PATH: /tmp/dist/
+          GHR_PATH: /tmp/*
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
