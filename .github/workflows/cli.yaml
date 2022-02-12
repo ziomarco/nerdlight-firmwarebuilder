@@ -30,12 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2.1.0
-        with:
-            path: /tmp
       - name: Inspect
-        run: ls -l /tmp/built
+        run: ls -l built
       - name: Create GitHub Release
         uses: fnkr/github-action-ghr@v1
         env:
-          GHR_PATH: /tmp/built/
+          GHR_PATH: built/
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
