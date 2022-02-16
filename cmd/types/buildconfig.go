@@ -9,4 +9,7 @@ type BuildConfig struct {
 	RPin              string
 	GPin              string
 	BPin              string
+	CACertFilePath    string
+	PrivKeyPath       string
+	CertPath          string
 }

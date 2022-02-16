@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -25,15 +24,26 @@ func init() {
 }
 
 func _handleBuild(cmd *cobra.Command, args []string) {
-	buildConfig, _ := configparser.Parse()
+	buildConfig, flashConfig := configparser.Parse()
 	utils.DownloadFirmware()
 
 	log.Print("Replacing firmware files with provided variables...")
-	utils.ReplaceInFile("/tmp/nerdlight-firmware/nerdlight-firmware.ino", "{{VARS_AWS_ENDPOINT}}", buildConfig.AWSIOTEndpoint)
-	utils.ReplaceInFile("/tmp/nerdlight-firmware/nerdlight-firmware.ino", "{{VARS_R_PIN}}", buildConfig.RPin)
-	utils.ReplaceInFile("/tmp/nerdlight-firmware/nerdlight-firmware.ino", "{{VARS_G_PIN}}", buildConfig.GPin)
-	utils.ReplaceInFile("/tmp/nerdlight-firmware/nerdlight-firmware.ino", "{{VARS_B_PIN}}", buildConfig.BPin)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/nerdlight-firmware.ino", "{{VARS_AWS_ENDPOINT}}", buildConfig.AWSIOTEndpoint)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/nerdlight-firmware.ino", "{{VARS_R_PIN}}", buildConfig.RPin)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/nerdlight-firmware.ino", "{{VARS_G_PIN}}", buildConfig.GPin)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/nerdlight-firmware.ino", "{{VARS_B_PIN}}", buildConfig.BPin)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/Makefile", "{{core}}", flashConfig.ChipCore)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/Makefile", "{{chip}}", flashConfig.ChipType)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/Makefile", "{{boardconfig}}", flashConfig.ArduinoCliBuildBoardConfig)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/Makefile", "{{mkspiffs_bin}}", flashConfig.MKSPIFFSBinPath)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/Makefile", "{{device_port}}", flashConfig.DevicePort)
+	utils.ReplaceInFile(buildConfig.FirmwareTempDir+"/Makefile", "{{spiffs_start_hex}}", flashConfig.SPIFFSStartHEX)
 	log.Print("Firmware files ready for compilation!")
+
+	log.Print("Loading certificates...")
+	utils.CopyFile(buildConfig.CACertFilePath, buildConfig.FirmwareTempDir+"/data/ca.der")
+	utils.CopyFile(buildConfig.PrivKeyPath, buildConfig.FirmwareTempDir+"/data/private.der")
+	utils.CopyFile(buildConfig.CertPath, buildConfig.FirmwareTempDir+"/data/cert.der")
 
 	log.Print("Starting firmware compilation")
 	log.Print("Installing board...")
@@ -45,7 +55,6 @@ func _handleBuild(cmd *cobra.Command, args []string) {
 
 	fwDeps := []string{
 		"https://github.com/tzapu/WiFiManager.git",
-		"https://github.com/esp8266/Arduino.git",
 		"https://github.com/knolleary/pubsubclient.git",
 		"https://github.com/arduino-libraries/NTPClient.git",
 	}
@@ -62,14 +71,22 @@ func _handleBuild(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	const boardFQDN string = "esp8266:esp8266:espduino"
-	const firmwareSketchFile string = "nerdlight-firmware.ino"
+	log.Print("Assembling FS...")
+	errAssemblingFS := utils.LaunchCommand(buildConfig.FirmwareTempDir, "make", "filesystem.bin")
+	if errAssemblingFS != nil {
+		log.Fatal("[FS assembly] Failed to compile firmware: ", errAssemblingFS)
+		return
+	}
+
 	log.Print("Compiling firmware...")
-	err := utils.LaunchCommand(buildConfig.FirmwareTempDir, fmt.Sprintf("arduino-cli compile --fqbn %s %s", boardFQDN, firmwareSketchFile))
+	err := utils.LaunchCommand(
+		buildConfig.FirmwareTempDir,
+		"make", "build",
+	)
 	if err != nil {
 		log.Fatal("Failed to compile firmware: ", err)
 		return
 	}
 
-	log.Printf("Compilation ended! Your built firmware is in: %s", buildConfig.FirmwareTempDir+"/output")
+	log.Printf("Compilation ended!")
 }

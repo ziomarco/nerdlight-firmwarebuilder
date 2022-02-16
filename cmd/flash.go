@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/ziomarco/nerdlight-firmwarebuilder/cmd/configparser"
+	"github.com/ziomarco/nerdlight-firmwarebuilder/cmd/utils"
 )
 
 var flashCmd = &cobra.Command{
@@ -12,17 +14,36 @@ var flashCmd = &cobra.Command{
 	Long: `With this command you'll be able to flash
 nerdlight firmware on your device.
 
-Usage: nerdlight-fb flash <options>`,
+Usage: nerdlight-fb flash`,
 	Run: _handleFlash,
 }
 
 func init() {
 	rootCmd.AddCommand(flashCmd)
-	flashCmd.PersistentFlags().String("device-port", "", "The serial port of your device (e.g. /dev/ttyUSB0)")
-	flashCmd.PersistentFlags().String("firmware", "", "Complete path to your firmware binary file")
 }
 
 func _handleFlash(cmd *cobra.Command, args []string) {
-	// TODO: Implement
-	fmt.Println("flash called")
+	buildConfig, _ := configparser.Parse()
+
+	log.Print("Flashing FS...")
+	errFlashingFS := utils.LaunchCommand(
+		buildConfig.FirmwareTempDir,
+		"make", "flash-fs",
+	)
+	if errFlashingFS != nil {
+		log.Fatal("Failed to flash SPIFFS FS: ", errFlashingFS)
+		return
+	}
+
+	log.Print("Flashing firmware...")
+	err := utils.LaunchCommand(
+		buildConfig.FirmwareTempDir,
+		"make", "flash",
+	)
+	if err != nil {
+		log.Fatal("Failed to flash firmware: ", err)
+		return
+	}
+
+	log.Printf("Flash ended!")
 }

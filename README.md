@@ -16,8 +16,9 @@ ESP8266 NodeMCU firmware and flash to it!
 
 # Required dependencies
 
+- All required [firmware dependencies](https://github.com/ziomarco/nerdlight-firmware)
 - git
-- https://github.com/arduino/arduino-cli/releases
+- [Arduino CLI](https://github.com/arduino/arduino-cli/releases)
 
 ## Basic commands
 
